@@ -1,6 +1,7 @@
 // файл script.js
 window.onload = function(){ 
 
+    const kMaxLen = 8
     let a = ''
     let b = ''
     let expressionResult = ''
@@ -14,11 +15,19 @@ window.onload = function(){
     
     function onDigitButtonClicked(digit) {
         if (!selectedOperation) {
+            if (a.length == kMaxLen) {
+                alert("Ахтунг! Слишком много цифр!")
+                return
+            }
             if ((digit != '.') || (digit == '.' && !a.includes(digit))) { 
                 a += digit
             }
             outputElement.innerHTML = a
         } else {
+            if (b.length == kMaxLen) {
+                alert("Ахтунг! Слишком много цифр!")
+                return
+            }
             if ((digit != '.') || (digit == '.' && !b.includes(digit))) { 
                 b += digit
                 outputElement.innerHTML = b        
@@ -38,18 +47,22 @@ window.onload = function(){
     document.getElementById("btn_op_mult").onclick = function() { 
         if (a === '') return
         selectedOperation = 'x'
+        outputElement.innerHTML = 'x'
     }
     document.getElementById("btn_op_plus").onclick = function() { 
         if (a === '') return
         selectedOperation = '+'
+        outputElement.innerHTML = '+'
     }
     document.getElementById("btn_op_minus").onclick = function() { 
         if (a === '') return
         selectedOperation = '-'
+        outputElement.innerHTML = '-'
     }
     document.getElementById("btn_op_div").onclick = function() { 
         if (a === '') return
         selectedOperation = '/'
+        outputElement.innerHTML = '/'
     }
     
     // кнопка очищения
@@ -86,18 +99,32 @@ window.onload = function(){
         selectedOperation = null
     
         outputElement.innerHTML = a
+
+        if (a === 'Infinity') a = ''
     }
 
     document.getElementById("btn_op_bspace").onclick = function() {     // !!! Мой вариант 3
         let len = 0
         if (!selectedOperation) {
             len = a.length
-            if (len > 0) a = a.slice(0, len - 1)
-            outputElement.innerHTML = a
+            if (len <= 1) {
+                a = ''
+                outputElement.innerHTML = 0
+            }
+            if (len > 1) {
+                a = a.slice(0, len - 1)
+                outputElement.innerHTML = a
+            }
         } else {
             len = b.length
-            if (len > 0) b = b.slice(0, len - 1)
-            outputElement.innerHTML = b        
+            if (len <= 1) {
+                b = ''
+                outputElement.innerHTML = 0
+            }
+            if (len > 1) {
+                b = b.slice(0, len - 1)
+                outputElement.innerHTML = b
+            }
         }
     }
 
