@@ -63,3 +63,14 @@
     font-size: 1.5rem;
     font-family: Arial, Helvetica, sans-serif;
   }
+
+@keyframes anim {
+  from {background-color: darkgray;}
+  to {background-color: #ff9801;}
+}
+
+.my-btn.primary  {
+  background-color: #ff9801;
+  animation-name: anim;
+  animation-duration: 4s;
+}
