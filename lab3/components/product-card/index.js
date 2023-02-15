@@ -1,3 +1,5 @@
+import {BageSaleComponent} from "../../components/bage-sale/index.js";
+
 export class ProductCardComponent {
     constructor(parent) {
         this.parent = parent;
@@ -11,12 +13,8 @@ export class ProductCardComponent {
                     <div class="card-body">
                         <h5 class="card-title">${data.title}</h5>
                         <p class="card-text">${data.text}</p>
-                        <button class="btn btn-primary position-relative" id="click-card-${data.id}" data-id="${data.id}">
+                        <button class="btn btn-secondary position-relative" id="click-card-${data.id}" data-id="${data.id}">
                             Подробнее...
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                Акция!
-                                <span class="visually-hidden">значок</span>
-                            </span>
                         </button>
                     </div>
                 </div>
@@ -29,11 +27,16 @@ export class ProductCardComponent {
             .getElementById(`click-card-${data.id}`)
             .addEventListener("click", listener)
     }
-    
+
+    prodCardRoot(data) {
+        return document.getElementById(`click-card-${data.id}`)
+    }
+
     render(data, listener) {
         const html = this.getHTML(data)
-        //this.parent.insertAdjacentHTML('beforeend', html)
         this.parent.insertAdjacentHTML('beforeend', html)
         this.addListeners(data, listener)
+        const bageSaleComponent = new BageSaleComponent(this.prodCardRoot(data))
+        bageSaleComponent.render(data, false)
     }
 }

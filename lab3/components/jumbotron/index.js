@@ -20,12 +20,11 @@ export class JumbotronComponent {
     
     clickCard(e) {
         const cardId = e.target.dataset.id
-    
         const productPage = new ProductPage(this.parent, cardId)
         productPage.render()
     }
 
-    get pageRoot() {
+    get jumboRoot() {
         return document.getElementById('jumbotron')
     }
 
@@ -34,7 +33,7 @@ export class JumbotronComponent {
         this.parent.insertAdjacentHTML('beforeend', html)
 
         this.data.forEach((item) => {
-            const productCard = new ProductCardComponent(this.pageRoot)
+            const productCard = new ProductCardComponent(this.jumboRoot)
             productCard.render(item, this.clickCard.bind(this))
         })
     }

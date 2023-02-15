@@ -1,7 +1,4 @@
-//import {ButtonComponent} from "../../components/button/index.js";
 import {HeaderComponent} from "../../components/header/index.js";
-//import {ProductCardComponent} from "../../components/product-card/index.js";
-//import {ProductPage} from "../product/index.js";
 import {JumbotronComponent} from "../../components/jumbotron/index.js";
 
 export class MainPage {
@@ -13,28 +10,30 @@ export class MainPage {
         return [
             {
                 id: 1,
-                src: "https://i.pinimg.com/originals/c9/ea/65/c9ea654eb3a7398b1f702c758c1c4206.jpg",
+                src: "img/ROCKS.jpg",
                 title: "Камни со вкусом ежа",
-                text: "Без ГМО!"
+                text: "Без ГМО!",
+                sales: "2 + 1",
+                sale: true
             },
             {
                 id: 2,
-                src: "https://i.pinimg.com/originals/c9/ea/65/c9ea654eb3a7398b1f702c758c1c4206.jpg",
+                src: "img/ROCKS.jpg",
                 title: "Жаренные камни",
-                text: "Натуральный продукт!"
+                text: "Натуральный продукт!",
+                sales: "10% скидка",
+                sale: true
             },
             {
                 id: 3,
-                src: "https://i.pinimg.com/originals/c9/ea/65/c9ea654eb3a7398b1f702c758c1c4206.jpg",
+                src: "img/ROCKS.jpg",
                 title: "Камни аля Париж",
-                text: "Таких нет даже во Франции!"
+                text: "Таких нет даже во Франции!",
+                sales: "даром",
+                sale: true
             },
         ]
     }
-
-    /*get pageRoot() {
-        return document.getElementById('main-page')
-    }*/
 
     getHTML() {
         return (
@@ -43,13 +42,6 @@ export class MainPage {
             `
         )
     }
-
-    /*clickCard(e) {
-        const cardId = e.target.dataset.id
-    
-        const productPage = new ProductPage(this.parent, cardId)
-        productPage.render()
-    }*/
 
     render() {
         this.parent.innerHTML = ''
@@ -63,10 +55,5 @@ export class MainPage {
 
         const jumbotronComponent = new JumbotronComponent(this.parent, data)
         jumbotronComponent.render()
-        
-        /*data.forEach((item) => {
-            const productCard = new ProductCardComponent(this.pageRoot)
-            productCard.render(item, this.clickCard.bind(this))
-        })*/
     }
 }

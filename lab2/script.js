@@ -62,7 +62,7 @@ window.onload = function(){
     }
     
     // кнопка расчёта результата
-    document.getElementById("btn_op_equal").onclick = function() { 
+    document.getElementById("btn_op_equal").onclick = function() {
         if (a === '' || b === '' || !selectedOperation)
             return
             
@@ -97,6 +97,27 @@ window.onload = function(){
         } else {
             len = b.length
             if (len > 0) b = b.slice(0, len - 1)
+            outputElement.innerHTML = b        
+        }
+    }
+
+    document.getElementById("btn_op_sign").onclick = function() {     // !!! Для души
+        let len = 0
+        if (!selectedOperation) {
+            if (a[0] == '-') {
+                len = a.length
+                if (len > 0) a = a.slice(1, len)
+            } else {
+                a = '-' + a
+            }
+            outputElement.innerHTML = a
+        } else {
+            if (b[0] == '-') {
+                len = b.length
+                if (len > 0) b = b.slice(1, len)
+            } else {
+                b = '-' + b
+            }
             outputElement.innerHTML = b        
         }
     }

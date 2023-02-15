@@ -10,12 +10,32 @@ export class ProductPage {
     }
 
     getData() {
-        return {
-            id: 1,
-            src: "https://i.pinimg.com/originals/c9/ea/65/c9ea654eb3a7398b1f702c758c1c4206.jpg",
-            title: `Акция ${this.id}`,
-            text: "Такой акции вы еще не видели"
-        }
+        return [
+            {
+                id: 1,
+                src: "img/ROCKS.jpg",
+                title: "Камни со вкусом ежа",
+                text: "Без ГМО!",
+                sales: "2 + 1",
+                sale: true
+            },
+            {
+                id: 2,
+                src: "img/ROCKS.jpg",
+                title: "Жаренные камни",
+                text: "Натуральный продукт!",
+                sales: "10% скидка",
+                sale: true
+            },
+            {
+                id: 3,
+                src: "img/ROCKS.jpg",
+                title: "Камни аля Париж",
+                text: "Таких нет даже во Франции!",
+                sales: "даром",
+                sale: true
+            },
+        ][this.id - 1]
     }
 
     get pageRoot() {
@@ -25,7 +45,7 @@ export class ProductPage {
     getHTML() {
         return (
             `
-                <div id="product-page"></div>
+                <div id="product-page" style="padding: 15px;"></div>
             `
         )
     }
@@ -36,6 +56,7 @@ export class ProductPage {
     }
     
     render() {
+        const data = this.getData()
         this.parent.innerHTML = ''
         
         const headerComponent = new HeaderComponent(this.parent)
@@ -47,7 +68,6 @@ export class ProductPage {
         const backButton = new BackButtonComponent(this.pageRoot)
         backButton.render(this.clickBack.bind(this))
 
-        const data = this.getData()
         const stock = new ProductComponent(this.pageRoot)
         stock.render(data)
     }
