@@ -207,7 +207,7 @@ class SyntaxTree {
             this.state = SyntaxTree.states.INVALID
             this.root = -1
             this.generateTree()
-        } else if (expr instanceof SyntaxTree) {
+        } else if (expr instanceof SyntaxTree) {  // Now copy constructor is unused
             this.exprStr = expr.exprStr.slice()
             this.exprElemArr = expr.exprElemArr.slice()
             this.state = expr.state
@@ -240,19 +240,7 @@ class SyntaxTree {
         this.exprElemArr = this.exprElemArr.slice(this.root, this.root + 1)
         this.root = 0
         this.exprStr = this.generateExprStr()
-        console.log("Debug log solve: " + this.exprStr)
         return ans
-    }
-
-    simplify() {
-        if (!this.state) {
-            console.log("Bad syntax!")
-            return
-        }
-        if (this.exprElemArr[this.root].isLeaf()) {
-            return
-        }
-        this.exprElemArr[this.root].simplify(this.root)
     }
 
     sumPrior(asString) {
