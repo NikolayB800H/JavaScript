@@ -1,18 +1,108 @@
 class Executor {
-    constructor(startVal) {
+    constructor(startVal, exprElemArr) {
         this.result = startVal
+        this.exprElemArr = exprElemArr
     }
 
-    execute() {}  // execute must be appended in derived classes
+    start(stack, used) {
+        this.stack = stack
+        this.used = used
+    }
+
+    executeIn(elemPos) {
+        this.stack.push(elemPos)
+    }
+
+    executeOut() {
+        let top = this.stack.pop()
+        this.used[top] = true
+        return top
+    }
 }
 
 class Printer extends Executor {
-    constructor() {
-        super("")
+    constructor(exprElemArr) {
+        super("", exprElemArr)
+        this.boldsStack = []
     }
 
-    execute(toAdd) {
-        this.result += toAdd.asString()
+    start(stack, used) {
+        super.start(stack, used)
+    }
+
+    executeIn(elemPos) {
+        super.executeIn(elemPos)
+        if (this.exprElemArr[elemPos] instanceof BoldsOpen) {
+            this.boldsStack.push(this.result.length)
+        }
+    }
+
+    executeLeafOut() {
+        let top = super.executeOut()
+        this.result += this.exprElemArr[top].asString()
+    }
+
+    executePrefixOut() {
+        return -1
+    }
+
+    executeInfixOut() {
+        let elemPos = super.executeOut()
+        if (this.exprElemArr[elemPos] instanceof BoldsOpen) {
+            let divide = this.boldsStack.pop()
+            this.result = this.result.slice(0, divide) + '(' + this.result.slice(divide)
+        } else {
+            this.result += this.exprElemArr[elemPos].asString()
+        }
+        return elemPos
+    }
+
+    executePostfixOut() {
+        return -1
+    }
+}
+
+class Simplifier extends Executor {
+    constructor(exprElemArr) {
+        super("", exprElemArr)
+        this.calcStack = []
+    }
+
+    start(stack, used) {
+        super.start(stack, used)
+    }
+
+    executeIn(elemPos) {
+        super.executeIn(elemPos)
+    }
+
+    executeLeafOut() {
+        let top = super.executeOut()
+        this.calcStack.push(top)
+        return top
+    }
+
+    executePrefixOut() {
+        return -1
+    }
+
+    executeInfixOut() {
+        let top = super.executeOut()
+        super.executeIn(top)
+        return top
+    }
+
+    executePostfixOut() {
+        let top = super.executeOut()
+        let right = this.calcStack.pop()
+        let left = this.calcStack.pop()
+        let toReplace = this.exprElemArr[top]
+        this.exprElemArr[top] = toReplace.execute(left, right)
+        this.calcStack.push(top)
+        if (this.stack.length === 0) {
+            this.result = this.exprElemArr[top].asString()
+        }
+        return top
     }
 }
 
@@ -21,33 +111,11 @@ class Operator {
         this.parent = -1
         this.left = -1
         this.right = -1
-        //console.log(exprElemArr)
         this.partOf = exprElemArr
-        //console.log(this.partOf)
     }
 
     isLeaf() {
         return false;
-    }
-
-    getChildSimple(lrIndex) {
-        let elem = 0
-        if (this.partOf[lrIndex].isLeaf()) {
-            elem = this.partOf[lrIndex].data
-        } else {
-            elem = this.partOf[lrIndex].simplify(lrIndex)
-        }
-        this.partOf[lrIndex] = undefined
-        return elem
-    }
-
-    simplify(pos, replacer) {
-        let left = this.left
-        let right = this.right
-        this.partOf[pos] = replacer(this)
-        this.partOf[left] = undefined
-        this.partOf[right] = undefined
-        return this.partOf[pos].data
     }
 }
 
@@ -58,27 +126,11 @@ class Add extends Operator {
     }
 
     asString() {
-        let ret = '+'
-        /*this.additional.forEach(element => {
-            ret += this.partOf[this.partOf[element].left].asString() + '+'
-        });*/
-        return ret
+        return '+'
     }
 
-    getSelfReplacement(super_) {
-        return new Int(super_.getChildSimple(super_.right) + super_.getChildSimple(super_.left))
-    }
-
-    simplify(pos) {
-        let ret = super.simplify(pos, this.getSelfReplacement)
-        this.additional.forEach(element => {
-            let cur = this.partOf[element]
-            ret += cur.getChildSimple(cur.right)
-            this.partOf[cur.right] = undefined
-            this.partOf[element] = undefined
-        });
-        this.partOf[pos].data = ret
-        return ret
+    execute(left, right) {
+        return new Int(this.partOf[left].data + this.partOf[right].data)
     }
 }
 
@@ -89,30 +141,11 @@ class Sub extends Operator {
     }
 
     asString() {
-        let ret = '-'
-        /*this.additional.forEach(element => {
-            ret += this.partOf[this.partOf[element].left].asString() + '-'
-        });*/
-        return ret
+        return '-'
     }
 
-    getSelfReplacement(super_) {
-        return new Int(super_.getChildSimple(super_.left) - super_.getChildSimple(super_.right))
-    }
-
-    /*simplify(exprElemArr, pos) {
-        return super.simplify(exprElemArr, pos, this.getSelfReplacement)
-    }*/
-    simplify(pos) {
-        let ret = super.simplify(pos, this.getSelfReplacement)
-        this.additional.forEach(element => {
-            let cur = this.partOf[element]
-            ret -= cur.getChildSimple(cur.right)
-            this.partOf[cur.right] = undefined
-            this.partOf[element] = undefined
-        });
-        this.partOf[pos].data = ret
-        return ret
+    execute(left, right) {
+        return new Int(this.partOf[left].data - this.partOf[right].data)
     }
 }
 
@@ -122,36 +155,12 @@ class Mul extends Operator {
         this.additional = []
     }
 
-    /*asString() {
-        return '*'
-    }*/
     asString() {
-        let ret = '*'
-        //console.log(this.additional)
-        //console.log(this.partOf)
-        /*this.additional.forEach(element => {
-            ret += this.partOf[this.partOf[element].left].asString() + '*'
-        });*/
-        return ret
+        return '*'
     }
 
-    getSelfReplacement(super_) {
-        return new Int(super_.getChildSimple(super_.right) * super_.getChildSimple(super_.left))
-    }
-
-    /*simplify(exprElemArr, pos) {
-        return super.simplify(exprElemArr, pos, this.getSelfReplacement)
-    }*/
-    simplify(pos) {
-        let ret = super.simplify(pos, this.getSelfReplacement)
-        this.additional.forEach(element => {
-            let cur = this.partOf[element]
-            ret *= cur.getChildSimple(cur.right)
-            this.partOf[cur.right] = undefined
-            this.partOf[element] = undefined
-        });
-        this.partOf[pos].data = ret
-        return ret
+    execute(left, right) {
+        return new Int(this.partOf[left].data * this.partOf[right].data)
     }
 }
 
@@ -161,34 +170,12 @@ class Div extends Operator {
         this.additional = []
     }
 
-    /*asString() {
-        return '/'
-    }*/
     asString() {
-        let ret = '/'
-        /*this.additional.forEach(element => {
-            ret += this.partOf[this.partOf[element].left].asString() + '/'
-        });*/
-        return ret
+        return '/'
     }
 
-    getSelfReplacement(super_) {
-        return new Int(super_.getChildSimple(super_.left) / super_.getChildSimple(super_.right))
-    }
-
-    /*simplify(exprElemArr, pos) {
-        return super.simplify(exprElemArr, pos, this.getSelfReplacement)
-    }*/
-    simplify(pos) {
-        let ret = super.simplify(pos, this.getSelfReplacement)
-        this.additional.forEach(element => {
-            let cur = this.partOf[element]
-            ret /= cur.getChildSimple(cur.right)
-            this.partOf[cur.right] = undefined
-            this.partOf[element] = undefined
-        });
-        this.partOf[pos].data = ret
-        return ret
+    execute(left, right) {
+        return new Int(this.partOf[left].data / this.partOf[right].data)
     }
 }
 
@@ -205,12 +192,8 @@ class BoldsOpen extends Operator {
         return '!'
     }
 
-    getSelfReplacement(super_) {
-        return new Int(new Number(super_.partOf[super_.left].simplify(super_.partOf, super_.left)))
-    }
-
-    simplify(pos) {
-        return super.simplify(pos, this.getSelfReplacement)
+    execute(left, right) {
+        return new Int(this.partOf[left].data)
     }
 }
 
@@ -253,11 +236,12 @@ class SyntaxTree {
         })
         this.exprStr = this.generateExprStr()
         console.log("Debug log replace: " + this.exprStr)
-        this.simplify()
-        //return this.exprElemArr[this.root].asString()
+        let ans = this.traverse(new Simplifier(this.exprElemArr))
+        this.exprElemArr = this.exprElemArr.slice(this.root, this.root + 1)
+        this.root = 0
         this.exprStr = this.generateExprStr()
-        console.log("Debug log simplify: " + this.exprStr)
-        return this.exprStr
+        console.log("Debug log solve: " + this.exprStr)
+        return ans
     }
 
     simplify() {
@@ -310,7 +294,6 @@ class SyntaxTree {
     }
 
     pushDynPrior(operLastPrior, elemNum, priorChecker) {
-        //console.log(elemNum)
         let operPos = this.exprElemArr.length
         let ret = 0
         while (elemNum !== -1) {
@@ -319,8 +302,6 @@ class SyntaxTree {
                 if (what === operLastPrior.asString()) {
                     this.exprElemArr[elemNum].additional.push(operPos)
                     this.exprElemArr[elemNum].right = -1
-                    //operPos = elemNum
-                    //ret = elemNum
                     operLastPrior.right = operLastPrior.left
                     operLastPrior.left = operLastPrior.parent
                     this.exprElemArr.push(operLastPrior)
@@ -348,7 +329,6 @@ class SyntaxTree {
             }
             ret = operPos
             elemNum = operLastPrior.parent
-            //console.log("New: "+elemNum)
         }
         this.exprElemArr.push(operLastPrior)
         if (operLastPrior.right !== -1) {
@@ -444,7 +424,6 @@ class SyntaxTree {
                     }
                     break;
             }
-            //console.log(this.exprElemArr)
         }
         this.root = 0
         while (this.exprElemArr[this.root].parent !== -1) {
@@ -456,33 +435,38 @@ class SyntaxTree {
 
     traverse(executor) {
         let stack = [this.root]
-        let top = 0
         let used = new Array(this.exprElemArr.length).fill(false)
+        executor.start(stack, used)
         while (stack.length !== 0) {
-            if (this.exprElemArr[stack[top]].isLeaf()) {
-                let tmp = stack.pop()
-                executor.execute(this.exprElemArr[tmp])
-                used[tmp] = true
-                --top
+            let top = stack.slice(-1)
+            let tmp = this.exprElemArr[top]
+            if (this.exprElemArr[top].isLeaf()) {
+                executor.executeLeafOut()
             } else {
-                let next = this.exprElemArr[stack[top]].left
-                if (used[next]) {
-                    let tmp = stack.pop()
-                    executor.execute(this.exprElemArr[tmp])
-                    used[tmp] = true
-                    stack.push(this.exprElemArr[tmp].right)
-                } else {
-                    let tmp = this.exprElemArr[stack[top]]
-                    if (tmp.additional === undefined) {
-                        stack.push(tmp.left)
-                        ++top
+                if (used[tmp.left]) {
+                    if (used[tmp.right]) {
+                        executor.executePostfixOut()
                     } else {
-                        used[stack[top]] = true
+                        let infix = executor.executeInfixOut()
+                        if (infix !== -1) {
+                            executor.executeIn(this.exprElemArr[infix].right)
+                        }
+                    }
+                } else {
+                    let prefix = executor.executePrefixOut()
+                    if (prefix !== -1) {
+                        executor.executeIn(this.exprElemArr[prefix].right)
+                    }
+                    if (tmp.additional === undefined) {
+                        executor.executeIn(tmp.left)
+                    } else {
+                        used[top] = true
                         tmp.additional.forEach(element => {
-                            stack.push(element)
+                            executor.executeIn(element)
                         });
-                        if (!used[tmp.left]) stack.push(tmp.left)
-                        top += tmp.additional.length + 1
+                        if (!used[tmp.left]) {
+                            executor.executeIn(tmp.left)
+                        }
                     }
                 }
             }
@@ -495,7 +479,7 @@ class SyntaxTree {
             console.log("Bad syntax!")
             return ""
         }
-        let ans = this.traverse(new Printer())
+        let ans = this.traverse(new Printer(this.exprElemArr))
         return ans
     }
 }
